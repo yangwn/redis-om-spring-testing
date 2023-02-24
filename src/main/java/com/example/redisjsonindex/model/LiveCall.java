@@ -19,7 +19,7 @@ public class LiveCall {
 
     private String conferenceId;
 
-    private long ttl;
+    private Integer ttl;
 
-    private long poolingOrder;
+    private Integer poolingOrder;
 }

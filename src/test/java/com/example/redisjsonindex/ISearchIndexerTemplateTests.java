@@ -37,23 +37,30 @@ public class ISearchIndexerTemplateTests {
     private ISearchIndexerTemplate<LiveCall> redisSearchIndexTemplate;
 
     private final String INDEX_NAME = "cmma-call-index";
-    private final long COUNT = 300;
+    private final long COUNT = 10000;
     private final String INDEX_NAME_PERFIX = "cmma:call:";
-    private final Map<String, RedisDType> columnWithTypeMap = Map.of("cmsId", RedisDType.Tag, "callId", RedisDType.Tag, "ttl", RedisDType.Number, "poolingOrder", RedisDType.Number);
+    //    private final Map<String, RedisDType> columnWithTypeMap = Map.of("cmsId", RedisDType.Tag, "callId", RedisDType.Tag, "ttl", RedisDType.Number, "poolingOrder", RedisDType.Number);
+    private final Map<String, RedisDType> columnWithTypeMap = Map.of("cmsId", RedisDType.Tag, "poolingOrder", RedisDType.Number);
 
     @BeforeAll
     public void setUp() {
         redisSearchIndexTemplate.drop(INDEX_NAME);
         redisSearchIndexTemplate.create(INDEX_NAME, INDEX_NAME_PERFIX, columnWithTypeMap);
         for (int i = 0; i < COUNT; i++) {
-            LiveCall liveCall = new LiveCall("id" + i, "cmsId" + i, "callId" + i, "conferenceId" + i, i, i - COUNT);
+            LiveCall liveCall = new LiveCall("id" + i, "cmsId" + i, "callId" + i, "conferenceId" + i, i, i);
             redisSearchIndexTemplate.save(INDEX_NAME_PERFIX + i, liveCall);
         }
     }
 
     @Test
+    public void queryByIntRange() {
+        List<LiveCall> liveCalls = redisSearchIndexTemplate.match(INDEX_NAME, "@poolingOrder:[(10 +inf] @poolingOrder:[-inf 30]").get();
+        liveCalls.forEach(System.out::println);
+    }
+
+    @Test
     public void queryOne() {
-        LiveCall liveCall = redisSearchIndexTemplate.queryOne(INDEX_NAME, Map.of()).get();
+        LiveCall liveCall = redisSearchIndexTemplate.queryOne(INDEX_NAME, Map.of("cmsId", "cmsId1")).get();
         System.out.println(liveCall);
         assertNotNull(liveCall);
     }
@@ -73,7 +80,7 @@ public class ISearchIndexerTemplateTests {
 
     @Test
     public void queryByIndexNameAndConditionAndPageable() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Order.asc("ttl")));
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Order.asc("poolingOrder")));
         List<LiveCall> res = redisSearchIndexTemplate.query(INDEX_NAME, Map.of(), pageable).get();
         res.forEach(it -> log.info(String.valueOf(it)));
         assertEquals(10, res.stream().count(), "list count is " + 10);

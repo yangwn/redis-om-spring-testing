@@ -56,8 +56,8 @@ public class LiveInfoTester {
 
         LiveInfo live = redisSearchIndexTemplate.getData("1").get();
         live.getExpectation().setExpected(true);
-        live.getLiveCall().setTtl(99L);
-        live.getLiveCall().setPoolingOrder(99L);
+        live.getLiveCall().setTtl(99);
+        live.getLiveCall().setPoolingOrder(99);
         redisSearchIndexTemplate.save("1", live);
         //redisSearchIndexTemplate.getUnifiedJedis().jsonSet("1", Path.of(".data.expectation"));
         //redisSearchIndexTemplate.getUnifiedJedis().jsonSetWithEscape("1", new DataWrapper<>(liveInfo));
